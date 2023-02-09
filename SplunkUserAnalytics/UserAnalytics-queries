@@ -48,6 +48,10 @@ index=_audit action=search search!="'typeahead*" (NOT user IN ($exclude$)) user 
 | stats count by _time user search total_run_time search_id app event_count
 | sort -_time
 
+### Dashboards Modified
 
-
-
+index=_internal sourcetype=splunkd_ui_access ui/views/ (NOT user IN ($exclude$)) user IN ($include$)
+  | rex field=referer "/(?<edit_type>editx?m?l?)(\?|$)"
+  | rex field=other "\s*?\-\s*(?<sessionId>[\S]+)\s*"
+  | table _time user method clientip sessionId file useragent
+  | rename file as dashboard

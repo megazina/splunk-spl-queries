@@ -1,6 +1,7 @@
 # Dashboard and Queries for Splunk User Analytics (basic)
-Tested on Splunk Enterprise 9.0
-v1.0
+_Tested on Splunk Enterprise 9.0_
+
+_Version v1.0_
 
 ## Contains:
 - Logins
@@ -11,10 +12,10 @@ v1.0
 
 Run on a SH, the user should have access to _internal, _audit indexes.
 Dashboard code is for Dashboard Studio type (replace the whole thing)
-If your searches return no results - try expanding the timeframe. If still no results - you don't have permissions for the _internal or _audit index or |rest command - find someone who has to run these dashboards.
+If your searches return no results - try expanding the timeframe. If still no results - you don't have permissions for the `_internal` or `_audit` index or `|rest` command - find someone who has to run these dashboards.
 
 ### Exclude
-It's currently manual list. To add Users to Exclude list you can specify in Token config, i.e. "*@idontwantthis.com"
+It's currently manual list. To add Users to Exclude list you can specify in Token config, i.e. `"*@idontwantthis.com"`
 
 ### Include Users
 It pulls the list of users from _audit index, excluding those mentioned in 'exclude' Token
