@@ -1,2 +1,2 @@
-# splunk-spl-queries
-Useful Dashboards / Queries for Splunk Enterprise/Cloud
+# Useful SPL queries and Dashboards
+Tested on Splunk Enterprise 9.0
