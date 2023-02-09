@@ -7,6 +7,7 @@ _Version v1.0_
 - Logins
 - Duration of Sessions
 - Details around Searches for one or multiple Splunk Users
+- Dashboard Activity
 
 ### IMPORTANT:
 
