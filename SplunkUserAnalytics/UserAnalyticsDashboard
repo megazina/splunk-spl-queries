@@ -1,0 +1,361 @@
+{
+	"dataSources": {
+		"ds_hUtpvksV": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"_internal\" sourcetype=splunk_web_* (NOT user IN ($exclude$)) user IN ($include$)\n| stats count as Pageviews dc(uri) as URLs by user\n| sort -Pageviews ",
+				"queryParameters": {
+					"earliest": "$global_time.earliest$",
+					"latest": "$global_time.latest$"
+				}
+			},
+			"name": "Most Active Users"
+		},
+		"ds_1eEWBgpB": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"_audit\" (NOT user IN ($exclude$)) user IN ($include$)\n| stats count by user",
+				"queryParameters": {
+					"earliest": "$global_time.earliest$",
+					"latest": "$global_time.latest$"
+				}
+			},
+			"name": "List of users"
+		},
+		"ds_WJNxdb1n": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=_audit action=\"login*\" info=succeeded (NOT user IN ($exclude$)) user IN ($include$)",
+				"queryParameters": {
+					"earliest": "$global_time.earliest$",
+					"latest": "$global_time.latest$"
+				}
+			},
+			"name": "Successful Logins"
+		},
+		"ds_mKd0RZrJ": {
+			"type": "ds.chain",
+			"options": {
+				"extend": "ds_WJNxdb1n",
+				"query": "| timechart dc(user) as unique_users_loggedin count(user) as total_logins"
+			},
+			"name": "Successful Logins timechart"
+		},
+		"ds_ewUuPzEA": {
+			"type": "ds.chain",
+			"options": {
+				"extend": "ds_WJNxdb1n",
+				"query": "| stats dc(user) as unique_users_loggedin count(user) as total_logins"
+			},
+			"name": "Successful Logins total"
+		},
+		"ds_pDpJixsU": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=_internal sourcetype=splunkd_ui_access (NOT user IN ($exclude$)) user IN ($include$)   \n| stats earliest(_time) AS StartTime latest(_time) AS EndTime count by user date_mday    \n| join type=left user         [        \n     | rest /services/authentication/users                \n     | rex field=id \"https:\\/\\/127.0.0.1:8089\\/(\\w+\\/)+(?<user>\\w+)\"                \n     | rename realname AS Name               \n     | fields user Name\n      ]    \n| search Name=*    \n| eval         \n     Duration=tostring(EndTime-StartTime,\"Duration\"),\n     Duration_min=(EndTime-StartTime)/60,\n     Duration_hrs=Duration_min/60,\n     StartTime=strftime(StartTime,\"%d/%m/%Y %H.%M.%S\"),        \n     EndTime=strftime(EndTime,\"%d/%m/%Y %H.%M.%S\")    \n| sort Name\n| table Name StartTime EndTime Duration Duration_min Duration_hrs",
+				"queryParameters": {
+					"earliest": "$global_time.earliest$",
+					"latest": "$global_time.latest$"
+				}
+			},
+			"name": "User Session Duration UI"
+		},
+		"ds_nzY2M3VB": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=_audit action=search search!=\"'typeahead*\" (NOT user IN ($exclude$)) user IN ($include$)\n| stats count by _time user search total_run_time search_id app event_count"
+			},
+			"name": "User Searches"
+		},
+		"ds_k8S5520U": {
+			"type": "ds.chain",
+			"options": {
+				"extend": "ds_nzY2M3VB",
+				"query": "| sort -_time"
+			},
+			"name": "Latest User Searches"
+		},
+		"ds_HmUBhAaO": {
+			"type": "ds.chain",
+			"options": {
+				"query": "| sort -total_run_time",
+				"extend": "ds_nzY2M3VB"
+			},
+			"name": "Longest User Searches"
+		}
+	},
+	"inputs": {
+		"input_global_trp": {
+			"type": "input.timerange",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-7d@h,now"
+			},
+			"title": "Global Time Range"
+		},
+		"input_rkU0vSzJ": {
+			"options": {
+				"items": [
+					{
+						"label": "SplunkSystemUser",
+						"value": "splunk-system-user"
+					},
+					{
+						"label": "- (system)",
+						"value": "-"
+					}
+				],
+				"defaultValue": [
+					"splunk-system-user",
+					"-"
+				],
+				"token": "exclude"
+			},
+			"title": "Exclude Users",
+			"type": "input.multiselect"
+		},
+		"input_YC0qGbbR": {
+			"options": {
+				"items": [
+					{
+						"label": "All",
+						"value": "*"
+					}
+				],
+				"defaultValue": [
+					"*"
+				],
+				"token": "include"
+			},
+			"title": "Include Users",
+			"type": "input.multiselect",
+			"dataSources": {
+				"primary": "ds_1eEWBgpB"
+			}
+		}
+	},
+	"layout": {
+		"type": "absolute",
+		"options": {
+			"width": 1800,
+			"height": 1500,
+			"display": "auto-scale"
+		},
+		"structure": [
+			{
+				"item": "viz_VkfvJywu",
+				"type": "block",
+				"position": {
+					"x": 260,
+					"y": 10,
+					"w": 540,
+					"h": 280
+				}
+			},
+			{
+				"item": "viz_2IJpEQtV",
+				"type": "block",
+				"position": {
+					"x": 10,
+					"y": 10,
+					"w": 240,
+					"h": 130
+				}
+			},
+			{
+				"item": "viz_4EnbGcQJ",
+				"type": "block",
+				"position": {
+					"x": 10,
+					"y": 160,
+					"w": 240,
+					"h": 130
+				}
+			},
+			{
+				"item": "viz_pKocICXM",
+				"type": "block",
+				"position": {
+					"x": 810,
+					"y": 10,
+					"w": 980,
+					"h": 280
+				}
+			},
+			{
+				"item": "viz_U0dh9upF",
+				"type": "block",
+				"position": {
+					"x": 10,
+					"y": 300,
+					"w": 1780,
+					"h": 570
+				}
+			},
+			{
+				"item": "viz_CrXrm3fj",
+				"type": "block",
+				"position": {
+					"x": 10,
+					"y": 880,
+					"w": 1780,
+					"h": 530
+				}
+			}
+		],
+		"globalInputs": [
+			"input_global_trp",
+			"input_rkU0vSzJ",
+			"input_YC0qGbbR"
+		]
+	},
+	"description": "",
+	"title": "Your Splunk User Stats",
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"latest": "$global_time.latest$",
+						"earliest": "$global_time.earliest$"
+					}
+				}
+			}
+		}
+	},
+	"visualizations": {
+		"viz_VkfvJywu": {
+			"type": "splunk.line",
+			"dataSources": {
+				"primary": "ds_mKd0RZrJ"
+			},
+			"title": "Successful User Logins",
+			"context": {
+				"countColumnFormatEditorConfig": {
+					"number": {
+						"thousandSeparated": true,
+						"unitPosition": "after"
+					}
+				},
+				"PageviewsColumnFormatEditorConfig": {
+					"number": {
+						"thousandSeparated": true,
+						"unitPosition": "after"
+					}
+				}
+			},
+			"showProgressBar": false,
+			"showLastUpdated": false,
+			"options": {
+				"xAxisTitleText": " ",
+				"legendDisplay": "bottom"
+			}
+		},
+		"viz_2IJpEQtV": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_ewUuPzEA"
+			},
+			"title": "Unique Users - Logged In",
+			"description": "Successful logins"
+		},
+		"viz_4EnbGcQJ": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_ewUuPzEA"
+			},
+			"title": "Total Logins",
+			"options": {
+				"majorValue": "> sparklineValues | lastPoint()",
+				"trendValue": "> sparklineValues | delta(-2)",
+				"sparklineValues": "> primary | seriesByName('total_logins')"
+			},
+			"description": "Successful logins"
+		},
+		"viz_pKocICXM": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_pDpJixsU"
+			},
+			"title": "User Sessions Duration (UI)",
+			"options": {
+				"columnFormat": {
+					"Duration_sec": {
+						"data": "> table | seriesByName(\"Duration_sec\") | formatByType(Duration_secColumnFormatEditorConfig)"
+					},
+					"Duration_min": {
+						"data": "> table | seriesByName(\"Duration_min\") | formatByType(Duration_minColumnFormatEditorConfig)"
+					},
+					"Duration_hrs": {
+						"data": "> table | seriesByName(\"Duration_hrs\") | formatByType(Duration_hrsColumnFormatEditorConfig)"
+					}
+				}
+			},
+			"context": {
+				"Duration_secColumnFormatEditorConfig": {
+					"number": {
+						"thousandSeparated": true,
+						"unitPosition": "after",
+						"precision": 0
+					}
+				},
+				"Duration_minColumnFormatEditorConfig": {
+					"number": {
+						"thousandSeparated": true,
+						"unitPosition": "after",
+						"precision": 0
+					}
+				},
+				"Duration_hrsColumnFormatEditorConfig": {
+					"number": {
+						"thousandSeparated": true,
+						"unitPosition": "after",
+						"precision": 1
+					}
+				}
+			}
+		},
+		"viz_U0dh9upF": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_k8S5520U"
+			},
+			"title": "Latest Searches",
+			"options": {
+				"columnFormat": {
+					"search": {
+						"data": "> table | seriesByName(\"search\") | formatByType(searchColumnFormatEditorConfig)"
+					}
+				}
+			},
+			"context": {
+				"searchColumnFormatEditorConfig": {
+					"string": {
+						"unitPosition": "after"
+					}
+				}
+			}
+		},
+		"viz_CrXrm3fj": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_HmUBhAaO"
+			},
+			"title": "Longest Searches",
+			"options": {
+				"columnFormat": {
+					"search": {
+						"data": "> table | seriesByName(\"search\") | formatByType(searchColumnFormatEditorConfig)"
+					}
+				}
+			},
+			"context": {
+				"searchColumnFormatEditorConfig": {
+					"string": {
+						"unitPosition": "after"
+					}
+				}
+			}
+		}
+	}
+}

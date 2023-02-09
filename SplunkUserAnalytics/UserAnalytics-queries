@@ -1,0 +1,53 @@
+
+
+### count of successful logins in splunk (info=failed if you want to look at failed)
+
+index=_audit action="login*" info=succeeded (NOT user IN ($exclude$)) user IN ($include$)
+| timechart dc(user) as unique_users_loggedin count(user) as total_logins
+
+
+### list all User connections
+
+index=_internal sourcetype=splunkd_ui_access (NOT user IN ($exclude$)) user IN ($include$)   
+| stats earliest(_time) AS StartTime latest(_time) AS EndTime count by user date_mday    
+| join type=left user         [        
+     | rest /services/authentication/users                
+     | rex field=id "https:\/\/127.0.0.1:8089\/(\w+\/)+(?<user>\w+)"                
+     | rename realname AS Name               
+     | fields user Name
+      ]    
+| search Name=*    
+| eval         
+     Duration=tostring(EndTime-StartTime,"Duration"),        
+     StartTime=strftime(StartTime,"%d/%m/%Y %H.%M.%S"),        
+     EndTime=strftime(EndTime,"%d/%m/%Y %H.%M.%S")    
+| sort Name
+| table Name StartTime EndTime Duration
+
+### User Sessions Duration (UI)
+
+index=_internal sourcetype=splunkd_ui_access (NOT user IN ($exclude$)) user IN ($include$)   
+| stats earliest(_time) AS StartTime latest(_time) AS EndTime count by user date_mday    
+| join type=left user         [        
+     | rest /services/authentication/users                
+     | rex field=id "https:\/\/127.0.0.1:8089\/(\w+\/)+(?<user>\w+)"                
+     | rename realname AS Name               
+     | fields user Name
+      ]    
+| search Name=*    
+| eval         
+     Duration=tostring(EndTime-StartTime,"Duration"),        
+     StartTime=strftime(StartTime,"%d/%m/%Y %H.%M.%S"),        
+     EndTime=strftime(EndTime,"%d/%m/%Y %H.%M.%S")    
+| sort Name
+| table Name StartTime EndTime Duration
+
+### Latest Searches (longest - sort by total_run_time; most popular searches - sort by count)
+
+index=_audit action=search search!="'typeahead*" (NOT user IN ($exclude$)) user IN ($include$)
+| stats count by _time user search total_run_time search_id app event_count
+| sort -_time
+
+
+
+
