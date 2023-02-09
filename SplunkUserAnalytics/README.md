@@ -29,3 +29,6 @@ If returns no results - may need to modify REGEX for ID field:
 
 ### UI interactions 
 mostly stored in index=_internal sourcetype=splunkd_ui_access
+
+### Sample Splunk User Activity Dashboard - v1
+![Sample Splunk User Activity Dashboard - v1](https://github.com/megazina/splunk-spl-queries/blob/main/SplunkUserAnalytics/SplunkUserActivity-Dash-v1-screenshot.png "Sample Splunk User Activity Dashboard - v1")
