@@ -97,6 +97,13 @@
 				"query": "  | search method=\"POST\" OR method=\"DELETE\"\n  | timechart dc(dashboard) by user"
 			},
 			"name": "Dashboard Modifications"
+		},
+		"ds_jSqJXXAR": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=_audit action=search search=* (NOT user IN ($exclude$)) user IN ($include$) earliest=-24h@h latest=now\r\n| rex field=search \"index\\s*=\\s*\\\"*(?<indexname>[^\\s\\\"]+)\" \r\n| stats dc(user) as UsedBy count as Searches by indexname \r\n| sort - Searches\r\n| head 10"
+			},
+			"name": "Top Searched Indexes - last 24hrs"
 		}
 	},
 	"inputs": {
@@ -153,7 +160,7 @@
 		"type": "absolute",
 		"options": {
 			"width": 1800,
-			"height": 2000,
+			"height": 2120,
 			"display": "auto-scale"
 		},
 		"structure": [
@@ -232,9 +239,19 @@
 				"type": "block",
 				"position": {
 					"x": 10,
-					"y": 1740,
+					"y": 1730,
 					"w": 820,
-					"h": 250
+					"h": 380
+				}
+			},
+			{
+				"item": "viz_xSKxznft",
+				"type": "block",
+				"position": {
+					"x": 850,
+					"y": 1730,
+					"w": 610,
+					"h": 380
 				}
 			}
 		],
@@ -412,6 +429,14 @@
 				"xAxisTitleText": " ",
 				"legendDisplay": "bottom"
 			}
+		},
+		"viz_xSKxznft": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_jSqJXXAR"
+			},
+			"title": "Top Searched Indexes - last 24hrs",
+			"description": "UsedBy (makes sense if you Select All users)"
 		}
 	}
 }

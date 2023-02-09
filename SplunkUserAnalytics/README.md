@@ -8,6 +8,7 @@ _Version v1.0_
 - Duration of Sessions
 - Details around Searches for one or multiple Splunk Users
 - Dashboard Activity
+- Top Searched Indexes
 
 ### IMPORTANT:
 

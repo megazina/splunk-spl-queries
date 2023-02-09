@@ -55,3 +55,11 @@ index=_internal sourcetype=splunkd_ui_access ui/views/ (NOT user IN ($exclude$))
   | rex field=other "\s*?\-\s*(?<sessionId>[\S]+)\s*"
   | table _time user method clientip sessionId file useragent
   | rename file as dashboard
+
+### Top Searched Indexes
+
+index=_audit action=search search=* (NOT user IN ($exclude$)) user IN ($include$) earliest=-24h@h latest=now
+| rex field=search "index\s*=\s*\"*(?<indexname>[^\s\"]+)" 
+| stats dc(user) as UsedBy count as Searches by indexname 
+| sort - Searches
+| head 10
